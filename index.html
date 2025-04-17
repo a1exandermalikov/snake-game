@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Snake Game</title>
+		<style>
+			* {
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;
+			}
+
+			body {
+				overflow: hidden;
+				background-color: #1c1c1c; /* Тёмный фон */
+				font-family: 'Arial', sans-serif;
+				color: white;
+			}
+
+			.segment {
+				width: 20px;
+				height: 20px;
+				position: absolute;
+				transition: all 0.1s ease-in-out; /* Плавное движение */
+			}
+
+			.head {
+				background-color: #32cd32; /* Ярко-зелёная голова */
+				box-shadow: 0 0 10px rgba(50, 205, 50, 0.8); /* Тень для головы */
+			}
+
+			.body {
+				background-color: #000; /* Чёрные тела */
+				box-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+			}
+
+			#apple {
+				width: 20px;
+				height: 20px;
+				background-color: #ff6347; /* Томато для яблока */
+				position: absolute;
+				border-radius: 50%; /* Округлые края для яблока */
+				box-shadow: 0 0 10px rgba(255, 99, 71, 0.7);
+			}
+
+			#start-message {
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+				font-size: 24px;
+				font-weight: bold;
+				color: white;
+				text-align: center;
+				opacity: 0.7;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="apple"></div>
+		<div id="start-message">Press Enter to Start</div>
+
+		<script>
+			const size = 20
+			const snake = [{ x: 100, y: 100 }]
+			let direction = { dx: size, dy: 0 }
+			let gameStarted = false
+			let interval
+			const apple = document.getElementById('apple')
+			const startMessage = document.getElementById('start-message')
+
+			// Генерация случайного яблока
+			function randomApple() {
+				const cols = Math.floor(window.innerWidth / size)
+				const rows = Math.floor(window.innerHeight / size)
+				const x = Math.floor(Math.random() * cols) * size
+				const y = Math.floor(Math.random() * rows) * size
+				apple.style.left = `${x}px`
+				apple.style.top = `${y}px`
+			}
+			randomApple()
+
+			// Отрисовка змейки
+			function drawSnake() {
+				document.querySelectorAll('.segment').forEach(s => s.remove())
+				for (let i = 0; i < snake.length; i++) {
+					const part = document.createElement('div')
+					part.classList.add('segment')
+					part.classList.add(i === 0 ? 'head' : 'body')
+					part.style.left = `${snake[i].x}px`
+					part.style.top = `${snake[i].y}px`
+					document.body.appendChild(part)
+				}
+			}
+
+			// Движение змейки
+			function move() {
+				const newHead = {
+					x: snake[0].x + direction.dx,
+					y: snake[0].y + direction.dy,
+				}
+
+				if (newHead.x >= window.innerWidth) newHead.x = 0
+				if (newHead.y >= window.innerHeight) newHead.y = 0
+				if (newHead.x < 0) newHead.x = window.innerWidth - size
+				if (newHead.y < 0) newHead.y = window.innerHeight - size
+
+				snake.unshift(newHead)
+
+				// Проверка на яблоко
+				const appleX = parseInt(apple.style.left)
+				const appleY = parseInt(apple.style.top)
+
+				// Точная проверка на столкновение с яблоком
+				if (newHead.x === appleX && newHead.y === appleY) {
+					randomApple()
+				} else {
+					snake.pop()
+				}
+
+				drawSnake()
+			}
+
+			// Обработка ввода
+			document.body.addEventListener('keydown', e => {
+				if (!gameStarted && e.key === 'Enter') {
+					gameStarted = true
+					startMessage.style.display = 'none' // Скрываем сообщение
+					interval = setInterval(move, 100) // Запуск игры
+				}
+
+				if (e.key === 'ArrowLeft' && direction.dx === 0) {
+					direction = { dx: -size, dy: 0 }
+				}
+				if (e.key === 'ArrowRight' && direction.dx === 0) {
+					direction = { dx: size, dy: 0 }
+				}
+				if (e.key === 'ArrowUp' && direction.dy === 0) {
+					direction = { dx: 0, dy: -size }
+				}
+				if (e.key === 'ArrowDown' && direction.dy === 0) {
+					direction = { dx: 0, dy: size }
+				}
+			})
+		</script>
+	</body>
+</html>
